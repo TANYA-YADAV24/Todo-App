@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %} Tasks {% endblock %}
+
+{% block content %}
+<!-- Corrected Icon library link -->
+<script src="https://unpkg.com"></script>
+
+<div class="task-box">
+    <h2>Your Tasks</h2>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}" style="padding: 10px; margin-bottom: 10px; border-radius: 5px; background-color: #d4edda; color: #155724;">
+              {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+    
+    <!-- Task Input Form -->
+    <form action="{{ url_for('tasks.add_task') }}" method="POST" class="task-form">
+        <input type="text" name="title" placeholder="New task" required>
+        <button type="submit" class="btn">Add</button>
+    </form>
+
+    {% if tasks %}
+    <form method="POST" action="{{ url_for('tasks.clear_tasks') }}" style="margin-top: 10px;">
+        <button type="submit" class="btn btn-clear" onclick="return confirm('Clear everything?')">Clear All Tasks</button>
+    </form>
+    <br>
+
+    <table class="task-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Task</th>
+                <th>Added On</th> 
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for task in tasks %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                
+                <td class="{% if task.status == 'Completed' %}strikethrough{% endif %}">
+                    {{ task.title }}
+                </td>
+
+                <td style="font-size: 0.85rem; color: #666;">
+                    {{ task.created_at.strftime('%d %b, %H:%M') if task.created_at else 'N/A' }}
+                </td>
+
+                <td>
+                    <span class="badge {{ task.status | lower }}">{{ task.status }}</span> 
+                </td>
+                
+                <td>
+                    <div style="display: flex; gap: 5px;">
+                        <form action="{{ url_for('tasks.toggle_status', task_id=task.id) }}" method="POST">
+                            <button class="btn-small" type="submit">Next</button>
+                        </form>
+
+                        <form action="{{ url_for('tasks.delete_task', task_id=task.id) }}" method="POST">
+                            <button class="btn-small btn-danger" type="submit" style="background-color: #ff4d4d;" onclick="return confirm('Delete?')">Delete</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <!-- CUTE EMPTY STATE -->
+    <div class="empty-state" style="text-align: center; padding: 40px; color: #888;">
+        <i data-lucide="clipboard-list" style="width: 50px; height: 50px; margin-bottom: 10px; color: #ccc;"></i>
+        <h3>Your list is empty!</h3>
+        <p>Time to crush some goals. Add a task above to get started.</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Initialize icons -->
+<script>lucide.createIcons();</script>
+{% endblock %}
